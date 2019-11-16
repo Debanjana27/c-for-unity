@@ -1,0 +1,39 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class start_end : MonoBehaviour
+{
+
+    public void cstart()
+    {
+        SceneManager.LoadScene(1);
+
+    }
+    public void carry_calc()
+    {
+        SceneManager.LoadScene(2);
+
+    }
+
+    public void PlayAgain()
+    {
+        SceneManager.LoadScene(1);
+
+    }
+
+    public void Answer()
+    {
+        SceneManager.LoadScene(2);
+    }
+
+
+
+    public void Quitbutton()
+    {
+        Application.Quit();  
+    }
+
+
+}
