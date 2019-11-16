@@ -1,23 +1,80 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 16
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "Assembly-CSharp.csproj", "{49E944A4-C972-9FDF-2938-F08AB595D7BB}"
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{49E944A4-C972-9FDF-2938-F08AB595D7BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{49E944A4-C972-9FDF-2938-F08AB595D7BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{49E944A4-C972-9FDF-2938-F08AB595D7BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{49E944A4-C972-9FDF-2938-F08AB595D7BB}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Assembly-CSharp.csproj
-	EndGlobalSection
-EndGlobal
+﻿//code to perform the 4 arithmetic operations.....
+ 
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using System;
+
+public class calc : MonoBehaviour
+{
+    // Start is called before the first frame update
+    public InputField Field1;
+    public InputField Field2;
+    public Text Result;
+
+    public int Field1X;
+
+    public int Field2X;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+       Result.text = "";
+       Result.text = "";
+        Result.text = "";
+        Result.text = "";
+
+
+    }
+
+    public void Get_info1()
+    {
+        Field1X = int.Parse(Field1.text);
+    }
+
+    public void Get_info2()
+    {
+        Field2X = int.Parse(Field2.text);
+    }
+
+
+    public void Sum()
+    {
+        int a = Convert.ToInt32(Field1.text);
+        int b = Convert.ToInt32(Field2.text);
+        int c = a + b;
+        Result.text = c.ToString();
+    }
+
+    public void Subs()
+    {
+        int a = Convert.ToInt32(Field1.text);
+        int b = Convert.ToInt32(Field2.text);
+        int d;
+        if (a > b)
+            d = a - b;
+        else
+            d = b - a;
+        Result.text = d.ToString();
+    }
+
+    public void Div()
+    {
+        int a = Convert.ToInt32(Field1.text);
+        int b = Convert.ToInt32(Field2.text);
+        int o = a / b;
+        Result.text = o.ToString();
+    }
+
+    public void Product()
+    {
+        int a = Convert.ToInt32(Field1.text);
+        int b = Convert.ToInt32(Field2.text);
+        int e = a * b;
+        Result.text = e.ToString();
+    }
+
+}
+
+    
