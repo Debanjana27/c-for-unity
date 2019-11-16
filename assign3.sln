@@ -1,35 +1,97 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 16
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VuforiaScripts", "VuforiaScripts.csproj", "{7A5F9277-4F12-D7A4-CA2F-F6B8E4125192}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "Assembly-CSharp.csproj", "{A4E5EEB6-F74C-AA06-E4E8-9FA573B11F98}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VuforiaEditorScripts", "VuforiaEditorScripts.csproj", "{485A6DB5-89F7-B864-222D-BCC9262AF2FB}"
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7A5F9277-4F12-D7A4-CA2F-F6B8E4125192}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7A5F9277-4F12-D7A4-CA2F-F6B8E4125192}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7A5F9277-4F12-D7A4-CA2F-F6B8E4125192}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7A5F9277-4F12-D7A4-CA2F-F6B8E4125192}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A4E5EEB6-F74C-AA06-E4E8-9FA573B11F98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A4E5EEB6-F74C-AA06-E4E8-9FA573B11F98}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A4E5EEB6-F74C-AA06-E4E8-9FA573B11F98}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A4E5EEB6-F74C-AA06-E4E8-9FA573B11F98}.Release|Any CPU.Build.0 = Release|Any CPU
-		{485A6DB5-89F7-B864-222D-BCC9262AF2FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{485A6DB5-89F7-B864-222D-BCC9262AF2FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{485A6DB5-89F7-B864-222D-BCC9262AF2FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{485A6DB5-89F7-B864-222D-BCC9262AF2FB}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Assembly-CSharp.csproj
-	EndGlobalSection
-EndGlobal
+ //translate in lean touch code.......
+ 
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Lean.Touch
+{
+    // This script allows you to translate the current GameObject relative to the camera
+    public class translate : MonoBehaviour
+    {
+        [Tooltip("Ignore fingers with StartedOverGui?")]
+        public bool IgnoreStartedOverGui = true;
+
+        [Tooltip("Ignore fingers with IsOverGui?")]
+        public bool IgnoreIsOverGui;
+
+        [Tooltip("Ignore fingers if the finger count doesn't match? (0 = any)")]
+        public int RequiredFingerCount;
+
+        [Tooltip("Does translation require an object to be selected?")]
+        public LeanSelectable RequiredSelectable;
+
+        [Tooltip("The camera the translation will be calculated using (None = MainCamera)")]
+        public Camera Camera;
+
+#if UNITY_EDITOR
+        protected virtual void Reset()
+        {
+            Start();
+        }
+#endif
+
+        protected virtual void Start()
+        {
+            if (RequiredSelectable == null)
+            {
+                RequiredSelectable = GetComponent<LeanSelectable>();
+            }
+        }
+
+        protected virtual void Update()
+        {
+            // Get the fingers we want to use
+            var fingers = LeanSelectable.GetFingers(IgnoreStartedOverGui, IgnoreIsOverGui, RequiredFingerCount, RequiredSelectable);
+
+            // Calculate the screenDelta value based on these fingers
+            var screenDelta = LeanGesture.GetScreenDelta(fingers);
+
+            // Perform the translation
+            if (transform is RectTransform)
+            {
+                TranslateUI(screenDelta);
+            }
+            else
+            {
+                Translate(screenDelta);
+            }
+        }
+
+        protected virtual void TranslateUI(Vector2 screenDelta)
+        {
+            // Screen position of the transform
+            var screenPoint = RectTransformUtility.WorldToScreenPoint(Camera, transform.position);
+
+            // Add the deltaPosition
+            screenPoint += screenDelta;
+
+            // Convert back to world space
+            var worldPoint = default(Vector3);
+
+            if (RectTransformUtility.ScreenPointToWorldPointInRectangle(transform.parent as RectTransform, screenPoint, Camera, out worldPoint) == true)
+            {
+                transform.position = worldPoint;
+            }
+        }
+
+        protected virtual void Translate(Vector2 screenDelta)
+        {
+            // Make sure the camera exists
+            var camera = LeanTouch.GetCamera(Camera, gameObject);
+
+            if (camera != null)
+            {
+                // Screen position of the transform
+                var screenPoint = camera.WorldToScreenPoint(transform.position);
+
+                // Add the deltaPosition
+                screenPoint += (Vector3)screenDelta;
+
+                // Convert back to world space
+                transform.position = camera.ScreenToWorldPoint(screenPoint);
+            }
+        }
+    }
+}
