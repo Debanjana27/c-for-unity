@@ -1,26 +1,150 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 16
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VuforiaScripts", "VuforiaScripts.csproj", "{B46F66AB-9D3D-7C61-DD29-D08F0E9FCB16}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VuforiaEditorScripts", "VuforiaEditorScripts.csproj", "{CCD5BD1F-1621-8F8B-337E-5C734E66586A}"
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B46F66AB-9D3D-7C61-DD29-D08F0E9FCB16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B46F66AB-9D3D-7C61-DD29-D08F0E9FCB16}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B46F66AB-9D3D-7C61-DD29-D08F0E9FCB16}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B46F66AB-9D3D-7C61-DD29-D08F0E9FCB16}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CCD5BD1F-1621-8F8B-337E-5C734E66586A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CCD5BD1F-1621-8F8B-337E-5C734E66586A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CCD5BD1F-1621-8F8B-337E-5C734E66586A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CCD5BD1F-1621-8F8B-337E-5C734E66586A}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-EndGlobal
+using UnityEngine;
+using Vuforia;
+
+/// <summary>
+/// A custom handler that implements the ITrackableEventHandler interface.
+///
+/// Changes made to this file could be overwritten when upgrading the Vuforia version.
+/// When implementing custom event handler behavior, consider inheriting from this class instead.
+/// </summary>
+public class DefaultTrackableEventHandler : MonoBehaviour, ITrackableEventHandler
+{
+    public UnityEngine.Video.VideoPlayer my_var;
+    public float timerr = 0f;
+    public bool lost = false;
+
+
+
+    #region PROTECTED_MEMBER_VARIABLES
+
+    protected TrackableBehaviour mTrackableBehaviour;
+    protected TrackableBehaviour.Status m_PreviousStatus;
+    protected TrackableBehaviour.Status m_NewStatus;
+
+    #endregion // PROTECTED_MEMBER_VARIABLES
+
+    #region UNITY_MONOBEHAVIOUR_METHODS
+
+    protected virtual void Start()
+    {
+        mTrackableBehaviour = GetComponent<TrackableBehaviour>();
+        if (mTrackableBehaviour)
+            mTrackableBehaviour.RegisterTrackableEventHandler(this);
+    }
+
+    protected virtual void OnDestroy()
+    {
+        if (mTrackableBehaviour)
+            mTrackableBehaviour.UnregisterTrackableEventHandler(this);
+    }
+
+    #endregion // UNITY_MONOBEHAVIOUR_METHODS
+
+    #region PUBLIC_METHODS
+
+    /// <summary>
+    ///     Implementation of the ITrackableEventHandler function called when the
+    ///     tracking state changes.
+    /// </summary>
+    public void OnTrackableStateChanged(
+        TrackableBehaviour.Status previousStatus,
+        TrackableBehaviour.Status newStatus)
+    {
+        m_PreviousStatus = previousStatus;
+        m_NewStatus = newStatus;
+
+        if (newStatus == TrackableBehaviour.Status.DETECTED ||
+            newStatus == TrackableBehaviour.Status.TRACKED ||
+            newStatus == TrackableBehaviour.Status.EXTENDED_TRACKED)
+        {
+            Debug.Log("Trackable " + mTrackableBehaviour.TrackableName + " found");
+            OnTrackingFound();
+        }
+        else if (previousStatus == TrackableBehaviour.Status.TRACKED &&
+                 newStatus == TrackableBehaviour.Status.NO_POSE)
+        {
+            Debug.Log("Trackable " + mTrackableBehaviour.TrackableName + " lost");
+            OnTrackingLost();
+        }
+        else
+        {
+            // For combo of previousStatus=UNKNOWN + newStatus=UNKNOWN|NOT_FOUND
+            // Vuforia is starting, but tracking has not been lost or found yet
+            // Call OnTrackingLost() to hide the augmentations
+            OnTrackingLost();
+        }
+    }
+
+    #endregion // PUBLIC_METHODS
+
+    #region PROTECTED_METHODS
+
+    protected virtual void OnTrackingFound()
+    {
+        my_var.Play();
+        lost = false;
+        var rendererComponents = GetComponentsInChildren<Renderer>(true);
+        var colliderComponents = GetComponentsInChildren<Collider>(true);
+        var canvasComponents = GetComponentsInChildren<Canvas>(true);
+
+        // Enable rendering:
+        foreach (var component in rendererComponents)
+            component.enabled = true;
+
+        // Enable colliders:
+        foreach (var component in colliderComponents)
+            component.enabled = true;
+
+        // Enable canvas':
+        foreach (var component in canvasComponents)
+            component.enabled = true;
+    }
+
+
+    protected virtual void OnTrackingLost()
+    {
+
+        my_var.Pause();
+        lost = true;
+        timerr = 0f;
+
+        var rendererComponents = GetComponentsInChildren<Renderer>(true);
+        var colliderComponents = GetComponentsInChildren<Collider>(true);
+        var canvasComponents = GetComponentsInChildren<Canvas>(true);
+
+        // Disable rendering:
+        foreach (var component in rendererComponents)
+            component.enabled = false;
+
+        // Disable colliders:
+        foreach (var component in colliderComponents)
+            component.enabled = false;
+
+        // Disable canvas':
+        foreach (var component in canvasComponents)
+            component.enabled = false;
+    }
+
+    #endregion // PROTECTED_METHODS
+
+    void Update()
+    {
+        if(lost)
+        {
+            timerr += Time.deltaTime;
+            if(timerr >=5.0f)
+            {
+                Debug.Log("5 seconds overr!!!");
+                my_var.Stop();
+                timerr = 0f;
+
+            }
+           
+
+
+
+        }
+    }
+
+}
