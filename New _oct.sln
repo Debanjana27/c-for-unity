@@ -1,23 +1,34 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 16
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "Assembly-CSharp.csproj", "{C3913BEB-3592-69A1-992B-7AFDE2F685F9}"
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C3913BEB-3592-69A1-992B-7AFDE2F685F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C3913BEB-3592-69A1-992B-7AFDE2F685F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C3913BEB-3592-69A1-992B-7AFDE2F685F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C3913BEB-3592-69A1-992B-7AFDE2F685F9}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Assembly-CSharp.csproj
-	EndGlobalSection
-EndGlobal
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Firebase;
+using Firebase.Database;
+using Firebase.Unity.Editor;
+using UnityEngine.UI;
+public class NewBehavfirebase_octiourScript : MonoBehaviour
+{
+    private DatabaseReference reef;//reef is the name of gameobject
+    int a = 50;
+    // Start is called before the first frame update
+    void Start()
+    {
+        
+        FirebaseApp.DefaultInstance.SetEditorDatabaseUrl("https://debanjana-69a1b.firebaseio.com/"); //very important to provide the location of the database
+        reef = FirebaseDatabase.DefaultInstance.GetReference("a");//give the refferance of the immediate child
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+
+    public void onclickbutton()
+    {
+        a -= 5;//to change the value
+        reef.SetValueAsync(a);
+    }
+
+}
