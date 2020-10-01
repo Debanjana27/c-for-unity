@@ -1,29 +1,138 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 16
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "Assembly-CSharp.csproj", "{860C857B-0087-C5BD-96BB-789AFBE41FCE}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp-Editor", "Assembly-CSharp-Editor.csproj", "{46F7D8BF-B1A3-C2DB-2578-3EBBC0C293E7}"
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{860C857B-0087-C5BD-96BB-789AFBE41FCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{860C857B-0087-C5BD-96BB-789AFBE41FCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{860C857B-0087-C5BD-96BB-789AFBE41FCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{860C857B-0087-C5BD-96BB-789AFBE41FCE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{46F7D8BF-B1A3-C2DB-2578-3EBBC0C293E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{46F7D8BF-B1A3-C2DB-2578-3EBBC0C293E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{46F7D8BF-B1A3-C2DB-2578-3EBBC0C293E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{46F7D8BF-B1A3-C2DB-2578-3EBBC0C293E7}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Assembly-CSharp.csproj
-	EndGlobalSection
-EndGlobal
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class SphereChanger : MonoBehaviour
+{
+
+
+
+    //This object should be called 'Fader' and placed over the camera
+    GameObject m_Fader;
+
+    //This ensures that we don't mash to change spheres
+    bool changing = false;
+
+    public List<GameObject> allSpheres;
+    int currentIndex;
+
+    void Start()
+    {
+        currentIndex = 1;
+        allSpheres = new List<GameObject>();
+
+        object[] obj = GameObject.FindObjectsOfType(typeof(GameObject));
+
+
+        foreach (object o in obj)
+        {
+            GameObject g = (GameObject)o;
+            if (g.name.Contains("Sphere"))
+            {
+                allSpheres.Add(g);
+            }
+
+        }
+
+        var sortedList = allSpheres.OrderBy(si => si.name).ToList();
+
+        allSpheres = sortedList;
+        Debug.Log("Sphere Count: " + allSpheres.Count);
+    }
+
+    void Awake()
+    {
+        //Find the fader object
+        m_Fader = GameObject.Find("Fader");
+
+        //Check if we found something
+        if (m_Fader == null)
+            Debug.LogWarning("No Fader object found on camera.");
+
+    }
+
+    void Update()
+    {
+        if (Input.GetButtonDown("Fire2") || Input.GetAxis("Horizontal") > 0) //move forward
+        {
+            currentIndex = currentIndex < allSpheres.Count ? currentIndex + 1 : 1;
+            ChangeSphere(allSpheres[currentIndex - 1].transform);
+            Debug.Log("Current Index: " + currentIndex);
+        }
+        if (Input.GetButtonDown("Fire3") || Input.GetAxis("Horizontal") < 0) //move backward
+        {
+            currentIndex = currentIndex > 1 ? currentIndex - 1 : allSpheres.Count;
+            ChangeSphere(allSpheres[currentIndex - 1].transform);
+            Debug.Log("Current Index: " + currentIndex);
+        }
+        if (Input.GetButtonDown("Fire1"))
+        {
+            SceneManager.LoadScene("scene2");
+        }
+
+    }
+
+
+    public void ChangeSphere(Transform nextSphere)
+    {
+
+        //Start the fading process
+        StartCoroutine(FadeCamera(nextSphere));
+
+    }
+
+
+    IEnumerator FadeCamera(Transform nextSphere)
+    {
+
+        //Ensure we have a fader object
+        if (m_Fader != null)
+        {
+            //Fade the Quad object in and wait 0.75 seconds
+            StartCoroutine(FadeIn(0.75f, m_Fader.GetComponent<Renderer>().material));
+            yield return new WaitForSeconds(0.75f);
+
+            //Change the camera position
+            Camera.main.transform.parent.position = nextSphere.position;
+
+            //Fade the Quad object out 
+            StartCoroutine(FadeOut(0.75f, m_Fader.GetComponent<Renderer>().material));
+            yield return new WaitForSeconds(0.75f);
+        }
+        else
+        {
+            //No fader, so just swap the camera position
+            Camera.main.transform.parent.position = nextSphere.position;
+        }
+
+
+    }
+
+
+    IEnumerator FadeOut(float time, Material mat)
+    {
+        //While we are still visible, remove some of the alpha colour
+        while (mat.color.a > 0.0f)
+        {
+            mat.color = new Color(mat.color.r, mat.color.g, mat.color.b, mat.color.a - (Time.deltaTime / time));
+            yield return null;
+        }
+    }
+
+
+    IEnumerator FadeIn(float time, Material mat)
+    {
+        //While we aren't fully visible, add some of the alpha colour
+        while (mat.color.a < 1.0f)
+        {
+            mat.color = new Color(mat.color.r, mat.color.g, mat.color.b, mat.color.a + (Time.deltaTime / time));
+            yield return null;
+        }
+    }
+
+
+}
+
